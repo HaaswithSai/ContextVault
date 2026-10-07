@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bookmark, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { Logo } from './Logo';
 
 interface HeaderProps {
   totalCount: number;
@@ -7,11 +8,9 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ totalCount }) => {
   return (
-    <header className="px-4 py-3 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between sticky top-0 z-20">
+    <header className="px-4 py-2.5 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between sticky top-0 z-20">
       <div className="flex items-center gap-2.5">
-        <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-md shadow-indigo-500/25">
-          <Bookmark className="w-3.5 h-3.5 text-white fill-white/20" />
-        </div>
+        <Logo size={28} />
         <div>
           <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
             Context Vault
