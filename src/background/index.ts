@@ -1,7 +1,7 @@
 import { saveMemory } from '../utils/storage';
 
-const CONTEXT_MENU_ID = 'mindclip-save-selection';
-const CONTEXT_MENU_TITLE = 'Save to MindClip';
+const CONTEXT_MENU_ID = 'contextvault-save-selection';
+const CONTEXT_MENU_TITLE = 'Save to Context Vault';
 
 /**
  * Register the context menu on extension install or update.

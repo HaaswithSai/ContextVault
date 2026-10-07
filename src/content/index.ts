@@ -1,5 +1,5 @@
 /**
- * Context Vault / MindClip - Content Script
+ * Context Vault - Content Script
  * Handles text selection extraction, DOM context heuristics, and messaging.
  */
 

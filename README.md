@@ -10,7 +10,7 @@ Context Vault allows you to highlight text on any webpage, automatically capture
 ## 🌟 Key Features
 
 - 🔒 **100% Local & Private**: All data is stored locally in your browser via `chrome.storage.local`. No cloud servers, no trackers, zero data leakage.
-- ⚡ **Instant Context Capture**: Right-click any highlighted text -> click **"Save to MindClip"** -> done.
+- ⚡ **Instant Context Capture**: Right-click any highlighted text -> click **"Save to Context Vault"** -> done.
 - 🧠 **Smart DOM Heuristics**: Automatically captures the surrounding paragraph context so you never lose the original meaning.
 - 🔍 **Real-Time Instant Search**: Fast substring matching across quotes, page titles, surrounding context, tags, and URLs.
 - 🏷️ **Tagging & Favorites**: Organize with custom tag pills (`#research`, `#ideas`) and star favorite quotes.
@@ -91,7 +91,7 @@ This automatically compiles and packages the extension into `context-vault-v1.0.
 1. **Capture Text**:
    - Highlight any text or quote on any webpage.
    - Right-click the highlighted text.
-   - Select **"Save to MindClip"** from the context menu.
+   - Select **"Save to Context Vault"** from the context menu.
    - A green **`✓`** badge will flash on the extension icon to confirm it was saved.
 
 2. **Search & Recall**:
@@ -167,7 +167,7 @@ ContextVault/
 
 Context Vault only requests permissions strictly necessary for its functionality:
 - `storage`: Persists your captured quotes securely on your local machine.
-- `contextMenus`: Adds the right-click **"Save to MindClip"** menu item when text is highlighted.
+- `contextMenus`: Adds the right-click **"Save to Context Vault"** menu item when text is highlighted.
 - `activeTab`: Accesses the active tab title and URL when saving a memory.
 - `scripting`: Injects the context extractor into existing open tabs.
 

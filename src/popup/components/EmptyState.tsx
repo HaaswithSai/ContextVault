@@ -85,7 +85,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       <h3 className="text-sm font-bold text-slate-100">Your Vault is Empty</h3>
       <p className="text-xs text-slate-400 mt-1 max-w-[260px] leading-relaxed">
         Highlight any text on the web, right-click, and select{' '}
-        <span className="text-indigo-300 font-semibold">"Save to MindClip"</span>.
+        <span className="text-indigo-300 font-semibold">"Save to Context Vault"</span>.
       </p>
 
       <div className="mt-4 p-3 bg-slate-900/90 rounded-xl border border-slate-800 text-left w-full space-y-2 text-[11px] text-slate-400">
@@ -96,7 +96,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <ol className="list-decimal list-inside space-y-1 text-slate-400 pl-1">
           <li>Select text on any webpage</li>
           <li>Right-click the selection</li>
-          <li>Click <strong>Save to MindClip</strong></li>
+          <li>Click <strong>Save to Context Vault</strong></li>
         </ol>
       </div>
 

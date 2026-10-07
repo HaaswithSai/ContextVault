@@ -173,7 +173,7 @@ async function runTests() {
   });
 
   test('Context heuristic handles short texts without unnecessary ellipses', () => {
-    const shortText = 'MindClip lets you capture web context effortlessly.';
+    const shortText = 'Context Vault lets you capture web context effortlessly.';
     const selected = 'capture web context';
     const context = simulateContextExtraction(shortText, selected);
     assert.strictEqual(context, shortText);
