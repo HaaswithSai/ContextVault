@@ -3,137 +3,184 @@
 > **"Never lose anything valuable from the web again."**  
 > *Created by [Haaswith Sai](https://github.com/HaaswithSai)*
 
-Context Vault allows users to highlight web text, capture surrounding context, tag memories, and search them instantly with local-first privacy.
+Context Vault allows you to highlight text on any webpage, automatically capture its surrounding context, organize memories with tags and favorites, and search through them instantly—all with **100% local-first privacy**.
 
 ---
 
-## 🚀 Part 1: Foundation & Storage Engine
+## 🌟 Key Features
 
-This repository represents **Part 1** of Context Vault's 3-part implementation plan.
-
-### Key Components Built in Part 1:
-1. **Manifest V3 Extension Foundation**:
-   - Modern Vite + React 18 + TypeScript + Tailwind CSS setup.
-   - Multi-entry Vite bundler producing popup HTML (`index.html`), background service worker (`background.js`), content script (`content.js`), and `manifest.json`.
-2. **Core Memory Schema**:
-   - `id: string`
-   - `url: string`
-   - `pageTitle: string`
-   - `selectedText: string`
-   - `surroundingContext: string`
-   - `tags: string[]`
-   - `isFavorite: boolean`
-   - `createdAt: number`
-3. **Modular Local Storage Engine (`src/utils/storage.ts`)**:
-   - `saveMemory()`
-   - `getAllMemories()`
-   - `searchMemories()`
-   - `updateMemoryTags()`
-   - `toggleFavorite()`
-   - `deleteMemory()`
-   - `getMemoryById()`
-   - `clearAllMemories()`
-   - Includes automatic `localStorage` fallback for standard browser development.
-4. **Interactive Verification Popup**:
-   - Responsive, dark-themed Tailwind CSS UI verifying real-time storage operations.
+- 🔒 **100% Local & Private**: All data is stored locally in your browser via `chrome.storage.local`. No cloud servers, no trackers, zero data leakage.
+- ⚡ **Instant Context Capture**: Right-click any highlighted text -> click **"Save to MindClip"** -> done.
+- 🧠 **Smart DOM Heuristics**: Automatically captures the surrounding paragraph context so you never lose the original meaning.
+- 🔍 **Real-Time Instant Search**: Fast substring matching across quotes, page titles, surrounding context, tags, and URLs.
+- 🏷️ **Tagging & Favorites**: Organize with custom tag pills (`#research`, `#ideas`) and star favorite quotes.
+- 📋 **1-Click Copy & Navigation**: Copy quotes with 1 click or open the original source URL directly in a new tab.
 
 ---
 
-## 📁 Project Structure
+## 🚀 How to Install and Run Locally on Your PC
+
+You can run Context Vault on **Google Chrome**, **Brave**, **Microsoft Edge**, **Arc**, **Opera**, or any Chromium-based browser on Windows, macOS, or Linux.
+
+### Method 1: Instant Install (No Coding Required)
+
+1. **Download the Repository**:
+   - Click the green **Code** button at the top of this GitHub page and select **Download ZIP** (or clone the repo).
+   - Extract the ZIP file to a folder on your computer.
+
+2. **Open Your Browser Extensions Page**:
+   - In Google Chrome, open a new tab and go to:
+     ```
+     chrome://extensions/
+     ```
+   *(For Microsoft Edge use `edge://extensions/`, for Brave use `brave://extensions/`)*
+
+3. **Enable Developer Mode**:
+   - Toggle the **Developer mode** switch in the top-right corner of the page.
+
+4. **Load the Extension**:
+   - Click the **"Load unpacked"** button in the top-left corner.
+   - Select the `dist` folder located inside the extracted repository folder.
+
+5. **Pin and Enjoy**:
+   - Click the **puzzle piece (Extensions) icon** in your browser toolbar.
+   - Click the **pin icon** next to **Context Vault** to keep it accessible in your toolbar.
+
+---
+
+### Method 2: Build from Source (For Developers)
+
+If you'd like to inspect, modify, or customize the extension:
+
+#### 1. Prerequisites
+- [Node.js](https://nodejs.org/) (version 18 or higher recommended)
+- Git
+
+#### 2. Clone the Repository
+```bash
+git clone https://github.com/HaaswithSai/ContextVault.git
+cd ContextVault
+```
+
+#### 3. Install Dependencies
+```bash
+npm install
+```
+
+#### 4. Run Live Development Server (Preview Popup in Browser)
+```bash
+npm run dev
+```
+
+#### 5. Build Production Bundle for Chrome
+```bash
+npm run build
+```
+This generates the optimized Manifest V3 bundle inside the `dist/` directory.
+
+#### 6. Package into a Distributable ZIP
+```bash
+npm run package
+```
+This automatically compiles and packages the extension into `context-vault-v1.0.0.zip` ready for the Chrome Web Store.
+
+---
+
+## 📖 How to Use Context Vault
+
+1. **Capture Text**:
+   - Highlight any text or quote on any webpage.
+   - Right-click the highlighted text.
+   - Select **"Save to MindClip"** from the context menu.
+   - A green **`✓`** badge will flash on the extension icon to confirm it was saved.
+
+2. **Search & Recall**:
+   - Click the **Context Vault** icon in your toolbar.
+   - Type in the sticky search bar to filter your quotes and web references in real-time.
+
+3. **Organize**:
+   - Click **`+ Tag`** on any card to add custom tags.
+   - Click the **⭐ Star** icon to add a memory to your favorites tab.
+   - Click **`More`** to expand and view the full surrounding context paragraph.
+
+4. **Revisit & Share**:
+   - Click the page title to jump straight back to the original webpage.
+   - Click the **Copy** icon to copy the quote directly to your clipboard.
+
+---
+
+## 📁 Project Architecture
 
 ```
 ContextVault/
 ├── public/
-│   ├── manifest.json       # Chrome Manifest V3 configuration
-│   └── icons/              # Extension icons (16px, 48px, 128px)
+│   ├── manifest.json            # Manifest V3 permissions & entrypoints
+│   ├── icons/                   # High-res extension icons (16px, 48px, 128px)
+│   └── logo.svg                 # Vector brand logo
 ├── src/
 │   ├── background/
-│   │   └── index.ts        # Background service worker entrypoint
+│   │   └── index.ts             # Service worker, context menu & badge feedback
 │   ├── content/
-│   │   └── index.ts        # Content script entrypoint
+│   │   └── index.ts             # Content script & DOM context heuristics engine
 │   ├── popup/
-│   │   ├── App.tsx         # React popup UI
-│   │   ├── main.tsx        # React entrypoint
-│   │   └── index.css       # Tailwind CSS styles
+│   │   ├── App.tsx              # Main React popup UI & state machine
+│   │   ├── components/
+│   │   │   ├── Header.tsx       # Header with memory counter
+│   │   │   ├── SearchBar.tsx    # Real-time search filter
+│   │   │   ├── FilterBar.tsx    # All / Favorites / Tag pills
+│   │   │   ├── MemoryCard.tsx   # Card with quote, context & actions
+│   │   │   ├── EmptyState.tsx   # Zero-data state handlers
+│   │   │   ├── Logo.tsx         # Vector logo component
+│   │   │   └── Toast.tsx        # Ephemeral action toasts
+│   │   ├── main.tsx             # React entrypoint
+│   │   └── index.css            # Tailwind directives & custom scrollbars
 │   ├── types/
-│   │   └── memory.ts       # Core Memory data schema
+│   │   └── memory.ts            # Core Memory data schema
 │   └── utils/
-│       └── storage.ts      # chrome.storage.local engine & helpers
+│       ├── storage.ts           # chrome.storage.local engine with dev fallback
+│       └── formatters.ts        # Relative time, domain & tab navigation helpers
+├── tests/
+│   └── test-engine.mjs          # Automated end-to-end test suite
 ├── scripts/
-│   └── generate-icons.mjs  # Icon generator script
-├── index.html              # Extension popup HTML template
-├── vite.config.ts          # Multi-entry Vite configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-├── tsconfig.json           # TypeScript configuration
+│   ├── generate-icons.mjs       # Procedural icon generator
+│   └── package-extension.mjs    # Automated ZIP packager
+├── dist/                        # Compiled production bundle
+├── vite.config.ts               # Multi-entry Vite bundler
+├── tailwind.config.js           # Tailwind CSS configuration
+├── tsconfig.json                # TypeScript configuration
 └── package.json
 ```
 
 ---
 
-## 🛠️ Installation & Development
+## 🛠️ Tech Stack
 
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Run Local Development Server
-Test the React popup UI directly in your browser:
-```bash
-npm run dev
-```
-
-### 3. Build for Chrome Extension
-Compile the Manifest V3 bundle into the `dist/` folder:
-```bash
-npm run build
-```
-
-### 4. Load in Google Chrome
-1. Open Chrome and navigate to `chrome://extensions/`.
-2. Enable **Developer mode** in the top-right corner.
-3. Click **Load unpacked**.
-4. Select the `dist/` directory generated by `npm run build`.
+- **Extension Standard**: Chrome Manifest V3
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Bundler**: Vite 6 (Multi-entry for popup, service worker, and content scripts)
+- **Icons**: Lucide React
+- **Storage**: `chrome.storage.local` (Local-first)
 
 ---
 
-## 🚀 Part 2: The Capture Mechanism (Completed)
+## 🛡️ Permissions Explained
 
-1. **Background Service Worker (`src/background/index.ts`)**:
-   - Registers `"Save to MindClip"` right-click context menu on installation (constrained to `contexts: ["selection"]`).
-   - Dispatches extraction message to active tab.
-   - Dynamic injection fallback via `chrome.scripting.executeScript` for tabs opened prior to installation.
-   - Saves extracted memory to `chrome.storage.local`.
-   - Visual feedback badge (`"✓"` in green `#10B981` on extension icon for 2.5 seconds).
-2. **Content Script (`src/content/index.ts`)**:
-   - Clean selection extraction (`window.getSelection()`).
-   - Heuristic surrounding context extraction: traverses ancestor tree to nearest semantic parent (`<p>`, `<article>`, `<section>`, `<blockquote>`, etc.), removes noise tags (`<script>`, `<nav>`, `<header>`, `<footer>`), and centers a ~300–500 char context window around highlighted text.
-   - Metadata capture (`document.title`, `og:title`, `<h1>`, `window.location.href`).
-   - `chrome.runtime.onMessage` async listener returning `true`.
-3. **Permissions**:
-   - `storage`, `activeTab`, `contextMenus`, and `scripting`.
+Context Vault only requests permissions strictly necessary for its functionality:
+- `storage`: Persists your captured quotes securely on your local machine.
+- `contextMenus`: Adds the right-click **"Save to MindClip"** menu item when text is highlighted.
+- `activeTab`: Accesses the active tab title and URL when saving a memory.
+- `scripting`: Injects the context extractor into existing open tabs.
 
 ---
 
-## 🚀 Part 3: The Interface (Search & Organization) (Completed)
+## 👤 Author
 
-1. **Main Popup Layout (`src/popup/App.tsx`)**:
-   - Modern, dark-mode header (`400px` × `580px`) with live memory counter and brand styling.
-   - Sticky real-time search bar with instant substring matching across quotes, page titles, surrounding context, tags, and URLs.
-   - Filter bar supporting **All**, **⭐ Favorites**, and dynamic horizontal tag pills.
-   - Smooth custom scrollbars and toast notifications for copy, tag, and delete actions.
-2. **Memory Card Component (`src/popup/components/MemoryCard.tsx`)**:
-   - Page title with domain badge, relative timestamp, and bulletproof tab navigation strictly using `chrome.tabs.create({ url })`.
-   - Prominently styled quote section with 1-click **Copy Text** button (with animated checkmark feedback).
-   - Expandable / collapsible surrounding context excerpt.
-   - Star / Favorite toggle and Delete button with instant optimistic UI updates.
-   - Interactive tag pills with 1-click filter, tag deletion, and inline `+ Tag` creator.
-3. **Empty States & Onboarding (`src/popup/components/EmptyState.tsx`)**:
-   - Polished zero-state guides for empty vault, no-search-results, no-favorites, and no-tag-matches.
+**Haaswith Sai**  
+GitHub: [@HaaswithSai](https://github.com/HaaswithSai)  
+Project Repository: [https://github.com/HaaswithSai/ContextVault](https://github.com/HaaswithSai/ContextVault)
 
 ---
 
-## 📦 Roadmap
-- [x] **Part 1**: Foundation, Project Scaffold & Local Storage Engine.
-- [x] **Part 2**: The Capture Mechanism (Context menu, Content script heuristics, messaging, badge feedback).
-- [x] **Part 3**: Full Search UI, Tag Filtering, Favorites view, and Memory Card management.
+## 📄 License
+
+This project is licensed under the MIT License - feel free to use, modify, and distribute!
