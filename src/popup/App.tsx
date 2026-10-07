@@ -1,265 +1,243 @@
-import React, { useState, useEffect } from 'react';
-import {
-  saveMemory,
-  getAllMemories,
-  searchMemories,
-  toggleFavorite,
-  updateMemoryTags,
-  deleteMemory,
-} from '../utils/storage';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Memory } from '../types/memory';
 import {
-  Bookmark,
-  Sparkles,
-  Search,
-  Star,
-  Tag,
-  Trash2,
-  Database,
-  CheckCircle2,
-  Layers,
-} from 'lucide-react';
+  getAllMemories,
+  saveMemory,
+  toggleFavorite,
+  deleteMemory,
+  updateMemoryTags,
+} from '../utils/storage';
+import { Header } from './components/Header';
+import { SearchBar } from './components/SearchBar';
+import { FilterBar } from './components/FilterBar';
+import { MemoryCard } from './components/MemoryCard';
+import { EmptyState } from './components/EmptyState';
+import { Toast } from './components/Toast';
 
 export const App: React.FC = () => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'info' | 'error'>('info');
 
-  // Load memories on mount
-  const loadMemories = async () => {
+  const showToast = useCallback((msg: string, type: 'success' | 'info' | 'error' = 'info') => {
+    setToastMessage(msg);
+    setToastType(type);
+    setTimeout(() => setToastMessage(null), 2500);
+  }, []);
+
+  // 1. Initial Data Fetch
+  const fetchMemories = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getAllMemories();
       setMemories(data);
     } catch (err) {
       console.error('Failed to load memories:', err);
+      showToast('Failed to load memories', 'error');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
-    loadMemories();
-  }, []);
+    fetchMemories();
+  }, [fetchMemories]);
 
-  const showStatus = (msg: string) => {
-    setStatusMessage(msg);
-    setTimeout(() => setStatusMessage(null), 3000);
-  };
-
-  // Add sample memory to test saveMemory
-  const handleAddSample = async () => {
-    const sample = await saveMemory({
-      pageTitle: 'Understanding Chrome Extensions Manifest V3',
-      url: 'https://developer.chrome.com/docs/extensions/mv3/intro/',
-      selectedText:
-        'Manifest V3 represents a shift in how extensions handle background scripts, security, and performance.',
-      surroundingContext:
-        'Extensions in Chrome are evolving. Manifest V3 represents a shift in how extensions handle background scripts, security, and performance. Service workers replace background pages.',
-      tags: ['chrome', 'manifest-v3', 'web-dev'],
-      isFavorite: true,
+  // 2. Computed Tags & Stats
+  const allUniqueTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    memories.forEach((m) => {
+      m.tags.forEach((t) => tagSet.add(t));
     });
-    setMemories((prev) => [sample, ...prev.filter((m) => m.id !== sample.id)]);
-    showStatus('Sample memory saved to storage!');
-  };
+    return Array.from(tagSet).sort();
+  }, [memories]);
 
-  // Handle search test
-  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const q = e.target.value;
-    setSearchQuery(q);
-    if (!q.trim()) {
-      await loadMemories();
-    } else {
-      const results = await searchMemories(q);
-      setMemories(results);
-    }
-  };
+  const favoriteCount = useMemo(() => {
+    return memories.filter((m) => m.isFavorite).length;
+  }, [memories]);
 
-  // Handle toggle favorite
-  const handleToggleFavorite = async (id: string) => {
-    const updated = await toggleFavorite(id);
-    if (updated) {
-      setMemories((prev) => prev.map((m) => (m.id === id ? updated : m)));
-      showStatus(updated.isFavorite ? 'Added to favorites' : 'Removed from favorites');
-    }
-  };
-
-  // Handle adding a test tag
-  const handleAddTag = async (id: string, currentTags: string[]) => {
-    const newTag = prompt('Enter a new tag:');
-    if (newTag && newTag.trim()) {
-      const updatedTags = [...currentTags, newTag.trim()];
-      const updated = await updateMemoryTags(id, updatedTags);
-      if (updated) {
-        setMemories((prev) => prev.map((m) => (m.id === id ? updated : m)));
-        showStatus(`Tag "${newTag.trim()}" added!`);
+  // 3. Filter & Search Logic
+  const filteredMemories = useMemo(() => {
+    return memories.filter((memory) => {
+      // Tab filter
+      if (activeTab === 'favorites' && !memory.isFavorite) {
+        return false;
       }
+
+      // Tag filter
+      if (selectedTag && !memory.tags.includes(selectedTag)) {
+        return false;
+      }
+
+      // Search query filter (matches selectedText, pageTitle, surroundingContext, tags, url)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const textMatch = memory.selectedText.toLowerCase().includes(q);
+        const titleMatch = memory.pageTitle.toLowerCase().includes(q);
+        const contextMatch = memory.surroundingContext.toLowerCase().includes(q);
+        const tagMatch = memory.tags.some((t) => t.toLowerCase().includes(q));
+        const urlMatch = memory.url.toLowerCase().includes(q);
+
+        if (!textMatch && !titleMatch && !contextMatch && !tagMatch && !urlMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [memories, activeTab, selectedTag, searchQuery]);
+
+  // 4. Action Handlers (Optimistic Updates + Storage Persistence)
+
+  const handleToggleFavorite = async (id: string) => {
+    // Optimistic state update
+    let isFav = false;
+    setMemories((prev) =>
+      prev.map((m) => {
+        if (m.id === id) {
+          isFav = !m.isFavorite;
+          return { ...m, isFavorite: !m.isFavorite };
+        }
+        return m;
+      })
+    );
+
+    try {
+      await toggleFavorite(id);
+      showToast(isFav ? 'Pinned to favorites' : 'Removed from favorites', 'success');
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+      showToast('Error updating favorite', 'error');
+      fetchMemories(); // Rollback
     }
   };
 
-  // Handle delete
   const handleDelete = async (id: string) => {
-    const ok = await deleteMemory(id);
-    if (ok) {
-      setMemories((prev) => prev.filter((m) => m.id !== id));
-      showStatus('Memory deleted');
+    // Optimistic deletion
+    const backup = [...memories];
+    setMemories((prev) => prev.filter((m) => m.id !== id));
+
+    try {
+      await deleteMemory(id);
+      showToast('Memory deleted', 'info');
+    } catch (err) {
+      console.error('Failed to delete memory:', err);
+      showToast('Error deleting memory', 'error');
+      setMemories(backup); // Rollback
     }
+  };
+
+  const handleUpdateTags = async (id: string, newTags: string[]) => {
+    // Optimistic update
+    setMemories((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, tags: newTags } : m))
+    );
+
+    try {
+      await updateMemoryTags(id, newTags);
+      showToast('Tags updated', 'success');
+    } catch (err) {
+      console.error('Failed to update tags:', err);
+      showToast('Error updating tags', 'error');
+      fetchMemories(); // Rollback
+    }
+  };
+
+  const handleAddSample = async () => {
+    try {
+      const sample = await saveMemory({
+        pageTitle: 'Chrome Extensions Manifest V3 Guide',
+        url: 'https://developer.chrome.com/docs/extensions/mv3/',
+        selectedText:
+          'Service workers replace background pages in MV3, providing improved security, reliability, and privacy.',
+        surroundingContext:
+          'Chrome Extensions Architecture: Service workers replace background pages in MV3, providing improved security, reliability, and privacy. They are event-driven and terminate when idle.',
+        tags: ['chrome', 'manifest-v3', 'web-dev'],
+        isFavorite: true,
+      });
+
+      setMemories((prev) => [sample, ...prev.filter((m) => m.id !== sample.id)]);
+      showToast('Sample memory added to Vault!', 'success');
+    } catch (err) {
+      console.error('Failed to add sample:', err);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setActiveTab('all');
+    setSelectedTag(null);
   };
 
   return (
-    <div className="w-[380px] min-h-[500px] bg-slate-950 text-slate-100 flex flex-col font-sans border border-slate-800 shadow-2xl">
-      {/* Header */}
-      <header className="p-4 border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Bookmark className="w-4 h-4 text-white fill-white/20" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
-              Context Vault
-              <span className="text-[10px] font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/20">
-                v1.0 (Part 1)
-              </span>
-            </h1>
-            <p className="text-[11px] text-slate-400">Never lose anything valuable</p>
-          </div>
-        </div>
+    <div className="w-[400px] h-[580px] max-h-[600px] bg-slate-950 text-slate-100 flex flex-col font-sans select-none overflow-hidden border border-slate-800 shadow-2xl relative">
+      {/* Toast Notification */}
+      <Toast message={toastMessage} type={toastType} />
 
-        <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full font-medium">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Storage Ready</span>
-        </div>
-      </header>
+      {/* Sticky Header */}
+      <Header totalCount={memories.length} />
 
-      {/* Main Content */}
-      <main className="p-4 flex-1 flex flex-col gap-3.5 overflow-y-auto max-h-[420px]">
-        {/* Status Notification Toast */}
-        {statusMessage && (
-          <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs flex items-center gap-2 animate-fade-in">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span>{statusMessage}</span>
+      {/* Sticky Search Bar */}
+      <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        resultCount={filteredMemories.length}
+        totalCount={memories.length}
+      />
+
+      {/* Filter Tabs & Tag Pills */}
+      <FilterBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        selectedTag={selectedTag}
+        onTagSelect={setSelectedTag}
+        allTags={allUniqueTags}
+        totalCount={memories.length}
+        favoriteCount={favoriteCount}
+      />
+
+      {/* Scrollable Memory List */}
+      <main className="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-2 text-slate-500">
+            <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs">Loading Context Vault...</span>
           </div>
-        )}
-
-        {/* Verification Card */}
-        <div className="p-3.5 rounded-xl bg-gradient-to-b from-slate-900 to-slate-900/60 border border-slate-800 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-indigo-400" />
-              Engine Status
-            </span>
-            <span className="text-[11px] text-slate-400 font-mono">
-              {memories.length} {memories.length === 1 ? 'item' : 'items'}
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 leading-relaxed mb-3">
-            React + Tailwind CSS + Manifest V3 storage engine verified and operating.
-          </p>
-          <button
-            onClick={handleAddSample}
-            className="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-medium transition-all flex items-center justify-center gap-2 shadow-sm shadow-indigo-600/30 cursor-pointer"
-          >
-            <Database className="w-3.5 h-3.5" />
-            Save Sample Memory to Test
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearch}
-            placeholder="Search quotes, titles, tags..."
-            className="w-full pl-8 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+        ) : memories.length === 0 ? (
+          <EmptyState type="empty" onAddSample={handleAddSample} />
+        ) : filteredMemories.length === 0 ? (
+          <EmptyState
+            type={
+              searchQuery
+                ? 'no-search-results'
+                : activeTab === 'favorites'
+                ? 'no-favorites'
+                : 'no-tag-results'
+            }
+            searchQuery={searchQuery}
+            tagName={selectedTag || undefined}
+            onClearFilters={handleClearFilters}
           />
-        </div>
-
-        {/* Memory List */}
-        <div className="space-y-2.5">
-          {isLoading ? (
-            <div className="text-center py-6 text-xs text-slate-500">Loading storage...</div>
-          ) : memories.length === 0 ? (
-            <div className="text-center py-6 border border-dashed border-slate-800 rounded-xl">
-              <p className="text-xs text-slate-400 font-medium">No memories stored yet</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Click "Save Sample Memory" above to test the storage engine.
-              </p>
-            </div>
-          ) : (
-            memories.map((m) => (
-              <div
-                key={m.id}
-                className="p-3 rounded-xl bg-slate-900/80 border border-slate-800/80 hover:border-slate-700 transition-all flex flex-col gap-2 group"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="text-xs font-semibold text-slate-200 line-clamp-1">
-                    {m.pageTitle}
-                  </h2>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => handleToggleFavorite(m.id)}
-                      title={m.isFavorite ? 'Remove favorite' : 'Add favorite'}
-                      className="p-1 rounded hover:bg-slate-800 transition-colors"
-                    >
-                      <Star
-                        className={`w-3.5 h-3.5 ${
-                          m.isFavorite
-                            ? 'text-amber-400 fill-amber-400'
-                            : 'text-slate-500 hover:text-slate-300'
-                        }`}
-                      />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(m.id)}
-                      title="Delete memory"
-                      className="p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <blockquote className="text-xs text-indigo-200/90 italic bg-indigo-950/30 border-l-2 border-indigo-500 pl-2 py-1 rounded-r">
-                  "{m.selectedText}"
-                </blockquote>
-
-                {/* Tags & Action row */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-800/50">
-                  <div className="flex flex-wrap gap-1 items-center">
-                    {m.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700/60"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                    <button
-                      onClick={() => handleAddTag(m.id, m.tags)}
-                      className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5 px-1 py-0.5"
-                    >
-                      <Tag className="w-2.5 h-2.5" />
-                      <span>+Tag</span>
-                    </button>
-                  </div>
-                  <span className="text-[10px] text-slate-500">
-                    {new Date(m.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        ) : (
+          filteredMemories.map((memory) => (
+            <MemoryCard
+              key={memory.id}
+              memory={memory}
+              onToggleFavorite={handleToggleFavorite}
+              onDelete={handleDelete}
+              onUpdateTags={handleUpdateTags}
+              onFilterByTag={(tag) => {
+                setSelectedTag(tag);
+                setActiveTab('all');
+              }}
+            />
+          ))
+        )}
       </main>
-
-      {/* Footer */}
-      <footer className="p-3 border-t border-slate-800/80 bg-slate-900/40 text-[11px] text-slate-400 flex items-center justify-between">
-        <span>Part 1: Storage Engine</span>
-        <span className="text-slate-500">Ready for Part 2 Context Menu</span>
-      </footer>
     </div>
   );
 };
