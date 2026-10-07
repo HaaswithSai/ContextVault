@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Neon Indigo-Cyan Stroke -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+
+    <!-- Glowing Ribbon Gradient -->
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="6" y="6" width="116" height="116" rx="28" fill="url(#bgGrad)" stroke="url(#neonGrad)" stroke-width="2.5" />
+
+  <!-- Shackle Arch (Top of Vault) -->
+  <path d="M44 48V36C44 25 53 16 64 16C75 16 84 25 84 36V48" stroke="url(#neonGrad)" stroke-width="7" stroke-linecap="round" fill="none" filter="url(#glow)" />
+
+  <!-- Vault Body -->
+  <rect x="30" y="48" width="68" height="58" rx="14" fill="#090d16" stroke="url(#neonGrad)" stroke-width="5" />
+
+  <!-- Keyhole / Memory Core -->
+  <circle cx="64" cy="74" r="10" stroke="url(#neonGrad)" stroke-width="4.5" fill="none" />
+  <path d="M64 84V93" stroke="url(#neonGrad)" stroke-width="4.5" stroke-linecap="round" />
+
+  <!-- Ribbon Bookmark Tab -->
+  <path d="M86 42V98L94 92L102 98V42C102 38.6863 99.3137 36 96 36C92.6863 36 86 38.6863 86 42Z" fill="url(#ribbonGrad)" filter="url(#glow)" opacity="0.9" />
+</svg>

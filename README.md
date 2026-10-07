@@ -184,3 +184,4 @@ Project Repository: [https://github.com/HaaswithSai/ContextVault](https://github
 ## 📄 License
 
 This project is licensed under the MIT License - feel free to use, modify, and distribute!
+
