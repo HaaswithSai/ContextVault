@@ -1,6 +1,7 @@
 {
   "name": "context-vault",
   "version": "1.0.0",
+  "author": "Haaswith Sai",
   "description": "Never lose anything valuable from the web again. Context Vault Chrome Extension (Manifest V3)",
   "type": "module",
   "scripts": {

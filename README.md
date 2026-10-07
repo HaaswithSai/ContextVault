@@ -1,6 +1,7 @@
 # 🧠 Context Vault (Chrome Extension - Manifest V3)
 
-> **"Never lose anything valuable from the web again."**
+> **"Never lose anything valuable from the web again."**  
+> *Created by [Haaswith Sai](https://github.com/HaaswithSai)*
 
 Context Vault allows users to highlight web text, capture surrounding context, tag memories, and search them instantly with local-first privacy.
 

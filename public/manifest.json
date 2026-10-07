@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Context Vault",
   "version": "1.0.0",
+  "author": "Haaswith Sai",
   "description": "Never lose anything valuable from the web again. Context Vault captures quotes, context, tags, and makes them instantly searchable.",
   "permissions": [
     "storage",

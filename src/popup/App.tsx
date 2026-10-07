@@ -7,6 +7,7 @@ import {
   deleteMemory,
   updateMemoryTags,
 } from '../utils/storage';
+import { openTab } from '../utils/formatters';
 import { Header } from './components/Header';
 import { SearchBar } from './components/SearchBar';
 import { FilterBar } from './components/FilterBar';
@@ -238,6 +239,21 @@ export const App: React.FC = () => {
           ))
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="px-4 py-1.5 bg-slate-900/60 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 shrink-0">
+        <span>Context Vault v1.0</span>
+        <button
+          onClick={() => openTab('https://github.com/HaaswithSai')}
+          className="hover:text-indigo-400 transition-colors flex items-center gap-1 cursor-pointer"
+          title="Open Haaswith Sai's GitHub"
+        >
+          <span>Created by</span>
+          <span className="text-indigo-300 hover:text-indigo-200 font-semibold underline underline-offset-2">
+            Haaswith Sai
+          </span>
+        </button>
+      </footer>
     </div>
   );
 };
