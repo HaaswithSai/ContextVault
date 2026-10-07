@@ -96,6 +96,25 @@ npm run build
 
 ---
 
-## 📦 Next Steps (Roadmap)
-- **Part 2**: Context menu creation, content script selection detection, context capture, and badge notifications.
-- **Part 3**: Full search UI, tag filtering, export/import, and memory detail view.
+## 🚀 Part 2: The Capture Mechanism (Completed)
+
+1. **Background Service Worker (`src/background/index.ts`)**:
+   - Registers `"Save to MindClip"` right-click context menu on installation (constrained to `contexts: ["selection"]`).
+   - Dispatches extraction message to active tab.
+   - Dynamic injection fallback via `chrome.scripting.executeScript` for tabs opened prior to installation.
+   - Saves extracted memory to `chrome.storage.local`.
+   - Visual feedback badge (`"✓"` in green `#10B981` on extension icon for 2.5 seconds).
+2. **Content Script (`src/content/index.ts`)**:
+   - Clean selection extraction (`window.getSelection()`).
+   - Heuristic surrounding context extraction: traverses ancestor tree to nearest semantic parent (`<p>`, `<article>`, `<section>`, `<blockquote>`, etc.), removes noise tags (`<script>`, `<nav>`, `<header>`, `<footer>`), and centers a ~300–500 char context window around highlighted text.
+   - Metadata capture (`document.title`, `og:title`, `<h1>`, `window.location.href`).
+   - `chrome.runtime.onMessage` async listener returning `true`.
+3. **Permissions**:
+   - `storage`, `activeTab`, `contextMenus`, and `scripting`.
+
+---
+
+## 📦 Roadmap
+- [x] **Part 1**: Foundation, Project Scaffold & Local Storage Engine.
+- [x] **Part 2**: The Capture Mechanism (Context menu, Content script heuristics, messaging, badge feedback).
+- [ ] **Part 3**: Full Search UI, Tag Filtering, Favorites view, and Export/Import features.
